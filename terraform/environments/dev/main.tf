@@ -1,18 +1,8 @@
-terraform {
-  required_version = ">= 1.2.0"
 
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
 
-provider "aws" {
-  region = var.region
-}
-
+# =================
+# S3 MODULE
+# =================
 module "s3" {
   source = "../../modules/s3"
 
