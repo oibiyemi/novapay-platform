@@ -1,0 +1,43 @@
+# =========================
+# Terraform
+# =========================
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+*.tfvars
+!example.tfvars
+
+# Crash logs
+crash.log
+crash.*.log
+
+# =========================
+# Secrets / Credentials
+# =========================
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+secrets.tf
+secrets.auto.tfvars
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Python (venv safety net)
+# =========================
+venv/
+__pycache__/
+*.pyc
