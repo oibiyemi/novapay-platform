@@ -1,4 +1,3 @@
-
 # =================
 # PROVIDER BLOCK
 # =================
@@ -11,19 +10,19 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  # =============
+  # BACKEND BLOCK
+  # =============
+  backend "s3" {
+    bucket         = "novapay-dev-state-storage"
+    key            = "environments/dev/terraform.tfstate"
+    region         = "ca-central-1"
+    encrypt        = true                # Highly recommended for security
+    dynamodb_table = "dev-novapay-table" # Legacy locking (pre-1.10)
+  }
 }
 
 provider "aws" {
   region = var.region
 }
-
-
-cd D:/minikube_data/intact-prep/novapay-platform && git add terraform/environments/dev/main.tf terraform/environments/dev/providers.tf && git commit -m "$(cat <<'EOF'
-refactor: split provider config into separate providers.tf
-
-Separated terraform/provider blocks from main.tf into providers.tf
-for cleaner separation of concerns. Main.tf now only contains
-module declarations.
-
-EOF
-)" && git status

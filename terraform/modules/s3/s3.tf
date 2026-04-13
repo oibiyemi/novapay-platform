@@ -6,7 +6,9 @@
 resource "aws_s3_bucket" "novapay_s3" {
   bucket = "${var.project_name}-${var.environment}-novapay"
   force_destroy = var.force_destroy
-  region = var.region
+  object_lock_enabled = true # Required for WORM protection
+  
+
 
   tags = local.common_tags
 
@@ -15,7 +17,7 @@ resource "aws_s3_bucket" "novapay_s3" {
 # PUBLIC ACCESS BLOCK
 resource "aws_s3_bucket_public_access_block" "novapay_s3_access_block" {
   bucket = aws_s3_bucket.novapay_s3.id
-  region = var.region
+  
 
   # Following AWS security best practices, all four settings are recommended to be true
   # by default unless a specific public use case is required.
@@ -25,16 +27,22 @@ resource "aws_s3_bucket_public_access_block" "novapay_s3_access_block" {
   restrict_public_buckets = true
 }
 
-
+# =================================
 # BUCKET VERSIONING BLOCK
+# =================================
 resource "aws_s3_bucket_versioning" "novapay_s3_versioning" {
   bucket = aws_s3_bucket.novapay_s3.id
+  
 
   versioning_configuration {
-    status     = "Enabled"
-    mfa_delete = "Enabled"
+    status = var.enable_versioning
+    # mfa_delete should be set at the bucket level, not versioning level
+    # Also, mfa_delete can only be "Enabled" or "Disabled" (case-sensitive)
+    # and can only be configured by the root account with MFA authentication
+    # For most use cases, it's better to omit this parameter entirely
+    # mfa_delete = "Disabled"
 
-    # MFA Delete protects permanent version deletes and changes to
+    # MFA Delete protects permanent version deletes and overwrites to
     # the bucket's versioning state.
     #
     # Important operational note:
@@ -61,6 +69,13 @@ resource "aws_kms_key" "novapay_s3_kms_key" {
   deletion_window_in_days = 10
 }
 
+# ================
+# KMS ALIAS BLOCK
+# ================
+resource "aws_kms_alias" "novapay_kms_alias" {
+  name          = "alias/${var.project_name}-key-alias"
+  target_key_id = aws_kms_key.novapay_s3_kms_key.key_id
+}
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
   bucket = aws_s3_bucket.novapay_s3.id
@@ -79,10 +94,48 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
   }
 }
 
-# aws_s3_bucket_versioning
-# aws_s3_bucket_public_access_block
-# aws_s3_bucket_lifecycle_configuration
-# aws_s3_bucket_logging
-# aws_s3_bucket_policy
-# aws_s3_bucket_server_side_encryption_configuration
-# bucket_prefix
+# -----------------------
+# LIFECYCLE CONFIGURATION
+# ------------------------
+resource "aws_s3_bucket_lifecycle_configuration" "novapay_s3_lifecycle" {
+  bucket = aws_s3_bucket.novapay_s3.id
+  rule {
+    id = "test"
+    status = "Enabled"
+
+
+  filter {
+    prefix = "payment-history-logs/"
+  }
+  
+  transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  transition {
+      days          = 365
+      storage_class = "GLACIER"
+    }
+
+  expiration {
+    days  = 600
+  }
+  }
+}
+
+
+# --------------------------------------------------------------------------------------------------
+# S3 OBJECT LOCK (WORM PROTECTION)
+# Prevents objects from being deleted or overwritten for a fixed amount of time.
+# Required for SOC2/Financial data integrity.
+# --------------------------------------------------------------------------------------------------
+resource "aws_s3_bucket_object_lock_configuration" "novapay_s3_object_lock" {
+  bucket = aws_s3_bucket.novapay_s3.id
+
+  rule {
+    default_retention {
+      mode = "COMPLIANCE" # Can't overwritten even by root 
+      years = 7
+    }
+  }
+}

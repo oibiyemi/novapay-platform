@@ -6,7 +6,6 @@
 *.tfstate
 *.tfstate.backup
 *.tfplan
-*.tfvars
 !example.tfvars
 
 # Crash logs
