@@ -14,8 +14,9 @@ variable "region" {
 }
 
 variable "enable_versioning" {
-  type    = string
-  default = "Disabled"
+  description = "Enable versioning on the S3 bucket"
+  type        = string
+  default     = "Enabled"
 }
 
 variable "force_destroy" {
