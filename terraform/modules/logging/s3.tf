@@ -33,12 +33,18 @@ resource "aws_s3_bucket_public_access_block" "s3_logging_access_block" {
 resource "aws_s3_bucket_lifecycle_configuration" "s3_logging_lifecycle" {
   bucket = aws_s3_bucket.s3_logging.id
   rule {
+
+    # This is critical for preventing incomplete 
+    # multipart uploads from consuming unnecessary storage
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
     id     = "logging"
     status = "Enabled"
 
 
     filter {
-      prefix = "payment-history-logs/"
+      prefix = "workload-storage-logs/"
     }
 
     transition {

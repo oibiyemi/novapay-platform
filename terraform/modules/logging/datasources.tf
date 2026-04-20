@@ -3,10 +3,10 @@
 # DATASOURCE BLOCK - Takes Policy Documents
 # =====================================
 data "aws_iam_policy_document" "allow_log_write" {
-   statement {
+  statement {
     sid = "AllowLogWrite"
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["logging.s3.amazonaws.com"]
     }
 
@@ -22,9 +22,12 @@ data "aws_iam_policy_document" "allow_log_write" {
 
     # BUT only when the logs came FROM the app bucket (Condition)
     condition {
-    test     = "ArnLike"
-    variable = "aws:SourceArn"
-    values   = [var.app_bucket_arn]   # Pulled from input variable ingested from the root ../dev/main.tf
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = [var.app_bucket_arn] # Pulled from input variable ingested from the root ../dev/main.tf
     }
   }
 }
+
+
+

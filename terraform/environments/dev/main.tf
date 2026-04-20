@@ -25,7 +25,22 @@ module "s3_logging" {
   force_destroy = var.force_destroy
 
   # Application bucket references (from s3 module outputs)
-  app_bucket    = module.s3.bucket_name
+  app_bucket     = module.s3.bucket_name
   app_bucket_arn = module.s3.bucket_arn
+
+
 }
 
+
+# =====================
+# OIDC MODULE
+# =====================
+module "openidconnect" {
+  source = "../../modules/openidconnect"
+
+  project_name    = var.project_name
+  environment     = var.environment
+  region          = var.region
+  repo_name       = var.repo_name
+  github_username = var.github_username
+}

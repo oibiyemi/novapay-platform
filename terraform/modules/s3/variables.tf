@@ -1,34 +1,34 @@
 variable "project_name" {
-  type = string
+  type        = string
   description = "NovaPay project name used across all resource naming."
- 
+
 
   validation {
-    condition = can(regex("^[a-z0-9-]{3,20}$", var.project_name))
+    condition     = can(regex("^[a-z0-9-]{3,20}$", var.project_name))
     error_message = "project_name must be lowercase, alphanumeric or hyphens, 3–20 characters."
   }
 }
 
 
 variable "environment" {
-  type = string
+  type        = string
   description = "Deployment environment for NovaPay resources."
- 
+
 
   validation {
-    condition     = anytrue([for e in ["dev","staging","uat","prod"]: e == var.environment])
+    condition     = anytrue([for e in ["dev", "staging", "uat", "prod"] : e == var.environment])
     error_message = "Environment must be one of: dev, staging, prod, uat."
   }
 }
 
 variable "region" {
-  type = string
+  type        = string
   description = "Region."
- 
+
 
   validation {
-    condition     = contains(["ca-central-1", "ca-west-1"], var.region)
-                    
+    condition = contains(["ca-central-1", "ca-west-1"], var.region)
+
     error_message = "Region must be a supported NovaPay AWS region: ca-central-1 or ca-west-1."
   }
 }
@@ -52,3 +52,7 @@ variable "force_destroy" {
   default     = false
   # NEVER true in prod. Fine in dev so we can clean up easily.
 }
+
+
+# account_id is resolved at runtime via data.aws_caller_identity
+# to avoid hardcoding the account across environments.
