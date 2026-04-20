@@ -23,3 +23,17 @@ variable "force_destroy" {
   type    = bool
   default = true
 }
+
+
+variable "repo_name" {
+  type        = string
+  description = "Repository name."
+}
+
+
+variable "github_username" {
+  type        = string
+  description = "Github User."
+}
+
+

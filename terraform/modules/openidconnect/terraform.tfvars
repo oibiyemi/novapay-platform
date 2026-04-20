@@ -1,0 +1,5 @@
+project_name    = "novapay"
+environment     = "dev"
+region          = "ca-central-1"
+repo_name       = "novapay-platform"
+github_username = "oibiyemi"

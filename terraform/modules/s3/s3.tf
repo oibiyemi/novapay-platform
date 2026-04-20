@@ -4,10 +4,11 @@
 
 # BUCKET RESOURCE BLOCK
 resource "aws_s3_bucket" "novapay_s3" {
-  bucket = "${var.project_name}-${var.environment}-novapay"
-  force_destroy = var.force_destroy
+  # checkov:skip=CKV_AWS_144: cross-region replication not needed - Single region deployment
+  bucket              = "${var.project_name}-${var.environment}-novapay"
+  force_destroy       = var.force_destroy
   object_lock_enabled = true # Required for WORM protection
-  
+
 
 
   tags = local.common_tags
@@ -17,7 +18,7 @@ resource "aws_s3_bucket" "novapay_s3" {
 # PUBLIC ACCESS BLOCK
 resource "aws_s3_bucket_public_access_block" "novapay_s3_access_block" {
   bucket = aws_s3_bucket.novapay_s3.id
-  
+
 
   # Following AWS security best practices, all four settings are recommended to be true
   # by default unless a specific public use case is required.
@@ -32,7 +33,7 @@ resource "aws_s3_bucket_public_access_block" "novapay_s3_access_block" {
 # =================================
 resource "aws_s3_bucket_versioning" "novapay_s3_versioning" {
   bucket = aws_s3_bucket.novapay_s3.id
-  
+
 
   versioning_configuration {
     status = var.enable_versioning
@@ -73,13 +74,13 @@ resource "aws_kms_key" "novapay_s3_kms_key" {
 # KMS ALIAS BLOCK
 # ================
 resource "aws_kms_alias" "novapay_kms_alias" {
-  name          = "alias/${var.project_name}-key-alias"
+  name          = "alias/${var.project_name}-${var.environment}-key-alias"
   target_key_id = aws_kms_key.novapay_s3_kms_key.key_id
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
   bucket = aws_s3_bucket.novapay_s3.id
-  
+
 
   # Using a bucket-level key for SSE-KMS can reduce AWS KMS request costs 
   # by up to 99 percent by decreasing the request traffic from Amazon S3 to AWS KMS
@@ -88,7 +89,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.novapay_s3_kms_key.arn
       sse_algorithm     = "aws:kms"
-      
+
     }
     bucket_key_enabled = true
   }
@@ -100,26 +101,33 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
 resource "aws_s3_bucket_lifecycle_configuration" "novapay_s3_lifecycle" {
   bucket = aws_s3_bucket.novapay_s3.id
   rule {
-    id = "test"
+
+    # This is critical for preventing incomplete 
+    # multipart uploads from consuming unnecessary storage
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    id     = "payment-workload"
     status = "Enabled"
 
 
-  filter {
-    prefix = "payment-history-logs/"
-  }
-  
-  transition {
+    filter {
+      prefix = "payment-history/"
+    }
+
+    transition {
       days          = 30
       storage_class = "STANDARD_IA"
     }
-  transition {
+    transition {
       days          = 365
       storage_class = "GLACIER"
     }
 
-  expiration {
-    days  = 600
-  }
+    expiration {
+      days = 600
+    }
   }
 }
 
@@ -134,8 +142,10 @@ resource "aws_s3_bucket_object_lock_configuration" "novapay_s3_object_lock" {
 
   rule {
     default_retention {
-      mode = "COMPLIANCE" # Can't overwritten even by root 
+      mode  = "COMPLIANCE" # Can't overwritten even by root 
       years = 7
     }
   }
 }
+
+
