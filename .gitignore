@@ -40,4 +40,7 @@ Thumbs.db
 venv/
 __pycache__/
 *.pyc
+
+# Docs
 interview-audio-script-s3-module.**
+*.md
