@@ -1,4 +1,5 @@
 resource "aws_dynamodb_table" "state_dynamodb_table" {
+  # checkov:skip=CKV_AWS_119: AWS-owned key acceptable for state-lock metadata (no PII/PCI). Revisit for prod.
   name                        = "${var.project_name}-${var.environment}-table"
   billing_mode                = var.billing_mode
   hash_key                    = var.lock_id

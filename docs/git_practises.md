@@ -19,3 +19,4 @@ git push --force-with-lease origin feat/s3-encryption-setup
 
 # 5. (In real team) Open PR, get review, merge to main
 #    (Solo) You just merge your own PR and delete branch
+gh pr create --fill --base main

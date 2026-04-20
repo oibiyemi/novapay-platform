@@ -1,0 +1,83 @@
+name: Terraform Security & Deployment
+
+on:
+  workflow_dispatch:
+  pull_request:    # ← GATE: scan before merge
+    paths: ["terraform/**"]
+    branches: [ main ]    
+  push:            # ← DEPLOY: apply after merge
+    branches: [ main ]
+    paths: ["terraform/**"]
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:    
+    validate:
+      name: Static Analysis & Security
+      runs-on: ubuntu-latest
+      steps:
+        - name: 1. Checkout Code
+          uses: actions/checkout@v4
+
+        - name: 2. Setup Terraform
+          uses: hashicorp/setup-terraform@v4
+          with:
+             terraform_version: "1.2.8"
+        
+        - name: 3. Terraform Init
+          working-directory: terraform/environments/dev
+          run: terraform init 
+
+        - name: 4. Terraform Format
+          run: terraform fmt -check -recursive terraform/
+        
+        - name: 5. Terraform Validate
+          working-directory: terraform/environments/dev
+          run: terraform validate 
+
+        - name: 6. Checkov Scan
+          uses: bridgecrewio/checkov-action@v12
+          with:
+           directory: terraform/
+           framework: terraform
+           soft_fail: false
+           quiet: true
+           output_format: cli
+            
+    # Deply Job    
+    deploy:
+      name: "AWS Deployment"
+      runs-on: ubuntu-latest
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      needs: [validate]
+
+      steps:
+        - name: 7. Checkout Code
+          uses: actions/checkout@v4
+
+        - name: 8. Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v6
+          with:
+            aws-region: ca-central-1
+            # gh secret set IAM_ROLE_TO_ASSUME \
+            # --body "arn:aws:iam::<ACCOUNT_ID>:role/novapay-dev-github-actions-role" \
+            # --repo <your-user>/novapay-platform
+            role-to-assume: ${{ secrets.IAM_ROLE_TO_ASSUME }}
+            role-duration-seconds: 900
+            role-session-name: OpenIDConnectSession
+
+        - name: 9. Terraform Init
+          working-directory: terraform/environments/dev
+          run: terraform init 
+
+        - name: 10. Terraform Plan
+          working-directory: terraform/environments/dev
+          run: terraform plan 
+
+        - name: 11. Terraform Apply
+          working-directory: terraform/environments/dev
+          run: terraform apply -auto-approve
+
+
+
