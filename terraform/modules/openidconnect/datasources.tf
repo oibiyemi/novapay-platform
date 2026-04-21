@@ -14,6 +14,7 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
 
     actions = [
       # ---------- S3 ----------
+      "s3:GetBucket",
       "s3:CreateBucket",
       "s3:DeleteBucket",
       "s3:PutAccountPublicAccessBlock",
