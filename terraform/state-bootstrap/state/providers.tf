@@ -10,11 +10,16 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  backend "local" {}
+  
+  backend "s3" {
+    bucket  = "novapay-dev-state-storage"
+    key     = "state-bootstrap/state/terraform.tfstate"
+    region  = "ca-central-1"
+    encrypt = true
+    dynamodb_table = "novapay-dev-table"
+  }
 }
 
 provider "aws" {
-  region = var.region
+  region = "ca-central-1"
 }
-

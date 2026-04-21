@@ -3,7 +3,7 @@ resource "aws_dynamodb_table" "state_dynamodb_table" {
   name                        = "${var.project_name}-${var.environment}-table"
   billing_mode                = var.billing_mode
   hash_key                    = var.lock_id
-  deletion_protection_enabled = true
+  deletion_protection_enabled = false
 
   # Point-in-time Recovery Backup
   # Protect your DynamoDB tables from accidental write or delete operations

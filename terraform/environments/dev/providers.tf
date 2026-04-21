@@ -19,10 +19,13 @@ terraform {
     key            = "environments/dev/terraform.tfstate"
     region         = "ca-central-1"
     encrypt        = true                # Highly recommended for security
-    dynamodb_table = "dev-novapay-table" # Legacy locking (pre-1.10)
+    dynamodb_table = "novapay-dev-table" # Legacy locking (pre-1.10)
   }
 }
 
 provider "aws" {
-  region = var.region
+  region = "ca-central-1"
 }
+
+
+
