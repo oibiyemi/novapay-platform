@@ -14,6 +14,7 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
 
     actions = [
       # ---------- S3 ----------
+      "s3:GetBucket",
       "s3:CreateBucket",
       "s3:DeleteBucket",
       "s3:PutAccountPublicAccessBlock",
@@ -38,6 +39,8 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "s3:GetBucketTagging",
       "s3:GetBucketAcl",
       "s3:PutBucketAcl",
+      "s3:ListBucket",
+      "s3:GetBucketLogging",
 
       # ---------- KMS ----------
       "kms:CreateAlias",
@@ -64,6 +67,10 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "dynamodb:ListTagsOfResource",
       "dynamodb:UpdateContinuousBackups",
       "dynamodb:DescribeContinuousBackups",
+            # ---------- DynamoDB (state locking) ----------
+      "dynamodb:PutItem",
+      "dynamodb:GetItem",
+      
 
       # ---------- IAM ----------
       "iam:CreateRole",
@@ -104,9 +111,15 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "sns:Unsubscribe",
       "sns:ListSubscriptionsByTopic"
     ]
-
+# "arn:aws:s3:::novapay-dev-state-storage/environments/dev/terraform.tfstate",
     resources = [
+      # Application and logging buckets (objects)
+      "arn:aws:s3:::${var.project_name}-${var.environment}-*/*",
+      # Bucket-level operations
       "arn:aws:s3:::${var.project_name}-${var.environment}-*",
+      # State bucket (explicit for bootstrap state lock)
+      "arn:aws:s3:::${var.project_name}-${var.environment}-state-storage",
+      "arn:aws:s3:::${var.project_name}-${var.environment}-state-storage/*",
       "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-*",
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${var.environment}-*",
       "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-workload-role",
