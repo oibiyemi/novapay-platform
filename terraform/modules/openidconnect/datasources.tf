@@ -15,6 +15,7 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
     actions = [
       # ---------- S3 ----------
       "s3:GetObject",
+      "s3:PutObject",
       "s3:CreateBucket",
       "s3:DeleteBucket",
       "s3:PutAccountPublicAccessBlock",
@@ -67,10 +68,12 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "dynamodb:ListTagsOfResource",
       "dynamodb:UpdateContinuousBackups",
       "dynamodb:DescribeContinuousBackups",
-            # ---------- DynamoDB (state locking) ----------
+      # ---------- DynamoDB (state locking) ----------
       "dynamodb:PutItem",
       "dynamodb:GetItem",
-      
+      "dynamodb:DeleteItem",
+      "dynamodb:UpdateItem",
+
 
       # ---------- IAM ----------
       "iam:CreateRole",
@@ -111,7 +114,7 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "sns:Unsubscribe",
       "sns:ListSubscriptionsByTopic"
     ]
-# "arn:aws:s3:::novapay-dev-state-storage/environments/dev/terraform.tfstate",
+
     resources = [
       # Application and logging buckets (objects)
       "arn:aws:s3:::${var.project_name}-${var.environment}-*/*",
