@@ -19,44 +19,8 @@ jobs:
       steps:
         - name: 1. Checkout Code
           uses: actions/checkout@v4
-
-        - name: 2. Setup Terraform
-          uses: hashicorp/setup-terraform@v4
-          with:
-             terraform_version: "1.2.8"
         
-        - name: 3. Terraform Init
-          working-directory: terraform/environments/dev
-          run: terraform init 
-
-        - name: 4. Terraform Format
-          run: terraform fmt -check -recursive terraform/
-        
-        - name: 5. Terraform Validate
-          working-directory: terraform/environments/dev
-          run: terraform validate 
-
-        - name: 6. Checkov Scan
-          uses: bridgecrewio/checkov-action@v12
-          with:
-           directory: terraform/
-           framework: terraform
-           soft_fail: false
-           quiet: true
-           output_format: cli
-            
-    # Deply Job    
-    deploy:
-      name: "AWS Deployment"
-      runs-on: ubuntu-latest
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      needs: [validate]
-
-      steps:
-        - name: 7. Checkout Code
-          uses: actions/checkout@v4
-
-        - name: 8. Configure AWS credentials
+        - name: 2. Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v6
           with:
             aws-region: ca-central-1
@@ -67,15 +31,62 @@ jobs:
             role-duration-seconds: 900
             role-session-name: OpenIDConnectSession
 
-        - name: 9. Terraform Init
+        - name: 3. Setup Terraform
+          uses: hashicorp/setup-terraform@v4
+          with:
+             terraform_version: "1.2.8"
+        
+        - name: 4. Terraform Init
           working-directory: terraform/environments/dev
           run: terraform init 
 
-        - name: 10. Terraform Plan
+        - name: 5. Terraform Format
+          run: terraform fmt -check -recursive terraform/
+        
+        - name: 6. Terraform Validate
+          working-directory: terraform/environments/dev
+          run: terraform validate 
+
+        - name: 7. Checkov Scan
+          uses: bridgecrewio/checkov-action@v12
+          with:
+           directory: terraform/
+           framework: terraform
+           soft_fail: false
+           quiet: true
+           output_format: cli
+            
+    # Deploy Job    
+    deploy:
+      name: "AWS Deployment"
+      runs-on: ubuntu-latest
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      needs: [validate]
+
+      steps:
+        - name: 8. Checkout Code
+          uses: actions/checkout@v4
+
+        - name: 9. Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v6
+          with:
+            aws-region: ca-central-1
+            # gh secret set IAM_ROLE_TO_ASSUME \
+            # --body "arn:aws:iam::<ACCOUNT_ID>:role/novapay-dev-github-actions-role" \
+            # --repo <your-user>/novapay-platform
+            role-to-assume: ${{ secrets.IAM_ROLE_TO_ASSUME }}
+            role-duration-seconds: 900
+            role-session-name: OpenIDConnectSession
+
+        - name: 10. Terraform Init
+          working-directory: terraform/environments/dev
+          run: terraform init 
+
+        - name: 11. Terraform Plan
           working-directory: terraform/environments/dev
           run: terraform plan 
 
-        - name: 11. Terraform Apply
+        - name: 12. Terraform Apply
           working-directory: terraform/environments/dev
           run: terraform apply -auto-approve
 
