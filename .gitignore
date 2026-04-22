@@ -44,3 +44,4 @@ __pycache__/
 # Docs
 interview-audio-script-s3-module.**
 *.md
+*.claude/
