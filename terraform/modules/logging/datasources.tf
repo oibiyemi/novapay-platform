@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "allow_log_write" {
 
     # The logging service writes TO the logging bucket (Resource)
     resources = [
-      "${aws_s3_bucket.s3_logging.arn}/payment-client/*",
+      "${aws_s3_bucket.s3_logging.arn}/payment-client-log/*",
     ]
 
     # BUT only when the logs came FROM the app bucket (Condition)

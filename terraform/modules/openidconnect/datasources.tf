@@ -41,7 +41,6 @@ data "aws_iam_policy_document" "github_web_identity_policy_doc" {
       "s3:GetBucketAcl",
       "s3:PutBucketAcl",
       "s3:ListBucket",
-      "s3:GetBucketLogging",
 
       # ---------- KMS ----------
       "kms:CreateAlias",

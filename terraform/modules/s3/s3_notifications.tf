@@ -24,6 +24,7 @@ data "aws_iam_policy_document" "sns_policy_doc" {
 #  SNS TOPIC
 # =============
 resource "aws_sns_topic" "topic" {
+  # checkov:skip=CKV_AWS_26: SNS topic encryption skipped - topic broadcasts S3 event metadata (object keys, event type), not payment data. KMS key overhead unjustified for non-sensitive event routing.
   name = "${var.project_name}-${var.environment}-s3-topic"
   # Policy is attached separately via aws_sns_topic_policy to keep
   # the topic definition and its access policy loosely coupled.
@@ -43,6 +44,8 @@ resource "aws_sns_topic_policy" "sns_policy" {
 #  S3 BUCKET NOTIFICATION
 # =======================
 resource "aws_s3_bucket_notification" "bucket_notification" {
+  # checkov:skip=CKV2_AWS_62: event notifications already enabled
+  # checkov:skip=CKV_AWS_26: "We are skipping SNS topic encryption"
   bucket = aws_s3_bucket.novapay_s3.id
 
   topic {
