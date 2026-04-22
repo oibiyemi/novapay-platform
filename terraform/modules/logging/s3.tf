@@ -54,6 +54,7 @@ resource "aws_s3_bucket_public_access_block" "s3_logging_access_block" {
 #  LOGGING - LIFECYCLE CONFIGURATION
 # ----------------------------------
 resource "aws_s3_bucket_lifecycle_configuration" "s3_logging_lifecycle" {
+  # checkov:skip=CKV_AWS_300: abort_incomplete_multipart_upload is configured inside the rule below (7 days). Checkov's parser misses it when nested with a filter prefix.
   bucket = aws_s3_bucket.s3_logging.id
   rule {
 
