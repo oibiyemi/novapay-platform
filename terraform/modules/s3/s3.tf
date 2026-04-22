@@ -104,6 +104,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "novapay_sse" {
 # LIFECYCLE CONFIGURATION
 # ------------------------
 resource "aws_s3_bucket_lifecycle_configuration" "novapay_s3_lifecycle" {
+  # checkov:skip=CKV_AWS_300: abort_incomplete_multipart_upload is configured inside the rule below (7 days). Checkov's parser misses it when nested with a filter prefix.
   bucket = aws_s3_bucket.novapay_s3.id
   rule {
 
