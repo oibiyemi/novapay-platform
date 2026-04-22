@@ -19,7 +19,9 @@ resource "aws_iam_role" "novapay_workload_s3_role" {
 # PERMISSION POLICY — what this role can do
 # Scoped to the specific bucket and KMS key (least privilege)
 resource "aws_iam_role_policy" "novapay_workload_s3_policy" {
-  name = "${var.project_name}-workload-s3-policy"
+  # checkov:skip=CKV_AWS_290: Write permissions (s3:PutObject) required for workload to write payment records. Scoped to single bucket ARN.
+  # checkov:skip=CKV_AWS_355: Wildcard only on object keys (bucket_arn/*), not resources. Least-privilege at bucket level.
+  name = "${var.project_name}-${var.environment}-workload-s3-policy"
   role = aws_iam_role.novapay_workload_s3_role.id
 
   policy = jsonencode({

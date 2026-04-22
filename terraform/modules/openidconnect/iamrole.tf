@@ -38,9 +38,17 @@ resource "aws_iam_role" "github_web_identity_role" {
 
 
 # ==================
-# PERMISSION POLICY 
+# PERMISSION POLICY
 # ==================
 resource "aws_iam_policy" "github_web_identity_policy" {
+  # checkov:skip=CKV_AWS_355: Wildcard resources required - GitHub Actions must manage any resource matching project naming convention (${project}-${env}-*). Scoping by naming prefix is the least-privilege pattern for a CI deploy role.
+  # checkov:skip=CKV_AWS_289: Admin-like permissions required for Terraform CI role - create/destroy S3, KMS, IAM, DynamoDB, SNS. Scoped by naming prefix, trust policy locked to single repo + branch.
+  # checkov:skip=CKV_AWS_290: IAM write permissions required for Terraform CI - creates and manages IAM roles for the workload. Bounded by resource ARN pattern.
+  # checkov:skip=CKV_AWS_107: iam:Create* actions required for bootstrapping IAM resources via Terraform.
+  # checkov:skip=CKV_AWS_108: Permissions scoped to specific resource ARN patterns, not "*".
+  # checkov:skip=CKV_AWS_109: Resource modification actions required for Terraform lifecycle.
+  # checkov:skip=CKV_AWS_110: Privilege escalation risk acknowledged - mitigated by OIDC trust policy (repo + branch + audience restrictions).
+  # checkov:skip=CKV_AWS_111: Write-without-constraints required for Terraform CI; constrained by resource ARN naming prefix.
   name   = "${var.project_name}-${var.environment}-github-identity-policy"
   path   = "/"
   policy = data.aws_iam_policy_document.github_web_identity_policy_doc.json

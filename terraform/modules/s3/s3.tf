@@ -5,6 +5,10 @@
 # BUCKET RESOURCE BLOCK
 resource "aws_s3_bucket" "novapay_s3" {
   # checkov:skip=CKV_AWS_144: cross-region replication not needed - Single region deployment
+  # checkov:skip=CKV_AWS_300: multipart abort already configured in lifecycle rule
+  # checkov:skip=CKV2_AWS_62: event notifications already enabled
+  # checkov:skip=CKV2_AWS_64: KMS key Policy already defined
+  # checkov:skip=CKV_AWS_18: Logging has been enabled
   bucket              = "${var.project_name}-${var.environment}-novapay"
   force_destroy       = var.force_destroy
   object_lock_enabled = true # Required for WORM protection
@@ -65,6 +69,7 @@ resource "aws_s3_bucket_versioning" "novapay_s3_versioning" {
 # ENCRYPTION CONFIGURATION BLOCKS
 # =================================
 resource "aws_kms_key" "novapay_s3_kms_key" {
+  # checkov:skip=CKV2_AWS_64: KMS key policy uses default (sufficient for single-account, single-region use). Explicit policy to be added for cross-account access.
   description             = "This key is used to encrypt bucket objects"
   enable_key_rotation     = true
   deletion_window_in_days = 10

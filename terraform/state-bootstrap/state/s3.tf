@@ -2,6 +2,12 @@
 # S3 BUCKET - STATE LOCKING
 #============================
 resource "aws_s3_bucket" "s3_state_storage" {
+  # checkov:skip=CKV2_AWS_61: Lifecycle intentionally not configured - Terraform state must be retained indefinitely for disaster recovery.
+  # checkov:skip=CKV_AWS_18: Access logging not configured on state bucket - bootstrap context, no logging target exists yet.
+  # checkov:skip=CKV_AWS_144: Cross-region replication not needed for dev state; revisit for prod.
+  # checkov:skip=CKV_AWS_145: Using SSE-S3 on state bucket - state contains no PII/PCI data; KMS overhead unjustified.
+  # checkov:skip=CKV2_AWS_62: Event notifications not needed on state bucket.
+  # checkov:skip=CKV_AWS_300: Multipart abort skipped - state files are small single-part uploads.
   bucket        = "${var.project_name}-${var.environment}-state-storage"
   force_destroy = var.force_destroy
 
